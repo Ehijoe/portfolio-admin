@@ -1,0 +1,13 @@
+env/
+
+instance/
+
+.log/
+*.log
+
+__pycache__/
+*.pyc
+
+# Emacs files
+*~
+\#*\#

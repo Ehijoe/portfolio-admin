@@ -1,0 +1,57 @@
+{% extends 'layout.html' %}
+
+{% block title %}Home{% endblock %}
+
+{% block body %}
+<script src={{ url_for('admin.static', filename="tags.js") }}></script>
+<h1>Projects</h1>
+<div>
+	{% for project in projects %}
+	<div class="card" style="width: 18rem;">
+		<img src="..." class="card-img-top" alt="...">
+		<div class="card-body">
+			<h5 class="card-title">Card title</h5>
+			<p class="card-text">Card content</p>
+			<a href="#" class="btn btn-primary">Go somewhere</a>
+		</div>
+	</div>
+	{% else %}
+	<p class="alert alert-secondary" role="alert">No projects added yet.</p>
+	{% endfor %}
+</div>
+<h2>Add a Project</h2>
+<script src={{ url_for('admin.static', filename="tags.js") }}></script>
+<form action={{ url_for('admin.add_project') }} enctype="multipart/form-data"
+	  method="post" class="login-form">
+	<div class="input-group m-3">
+		<span class="input-group-text">Title: </span>
+		<input name="title" required type="text" class="form-control" />
+	</div>
+	<div class="input-group m-3">
+		<span class="input-group-text">Description: </span>
+		<textarea name="description" required type="password" class="form-control"></textarea>
+	</div>
+	<div class="m-3" id="tagform">
+	  <label class="input-group-text">Tags: </label>
+	  <ul id="tags" class="taglist">
+	  </ul>
+	  <div>
+		  <input id="new-tag" type="text"/>
+		  <button type="button" class="btn btn-primary" onclick="addTag();">Add Tag</button>
+	  </div>
+	</div>
+	<div class="input-group m-3">
+		<span class="input-group-text">Image: </span>
+		<input name="image" required type="file" class="form-control" />
+	</div>
+	<div class="input-group m-3">
+		<span class="input-group-text">Source code: </span>
+		<input name="source" type="url" class="form-control" />
+	</div>
+	<div class="input-group m-3">
+		<span class="input-group-text">Demo URL: </span>
+		<input name="demo" type="url" class="form-control" />
+	</div>
+	<button type="submit" class="btn btn-outline-success mb-3">Add Project</button>
+</form>
+{% endblock %}
