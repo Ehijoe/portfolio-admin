@@ -1,8 +1,11 @@
 """Admin view for managing projects."""
 from flask import (Blueprint, render_template, session, url_for, redirect,
-                   request)
+                   request, current_app, send_from_directory)
 from functools import wraps
 from werkzeug.security import check_password_hash
+import uuid
+import os
+from bson.objectid import ObjectId
 
 from ..db import get_db
 
@@ -18,6 +21,18 @@ def protected(route):
             return redirect(url_for('admin.login'))
         return route(*args, **kwargs)
     return f
+
+
+def save_file(image_file):
+    """Save a project image."""
+    extension = image_file.filename.split('.')[-1]
+    if extension not in {"png", "jpg", "jpeg", "gif"}:
+        return None
+    name = f"{uuid.uuid4()}.{extension}"
+    os.makedirs(os.path.join(current_app.instance_path, "images"),
+                exist_ok=True)
+    image_file.save(os.path.join(current_app.instance_path, "images", name))
+    return name
 
 
 @admin_bp.route('/login', methods=["GET", "POST"])
@@ -49,12 +64,50 @@ def logout():
     return redirect(url_for('admin.login'))
 
 
+@admin_bp.route('/projects/delete/<string:id>')
+def delete_project(id):
+    """Delete the project with a given id."""
+    print(id)
+    db = get_db()
+    result = db.projects.delete_one({"_id": ObjectId(id)})
+    print(result.raw_result)
+    return redirect(url_for('admin.index'))
+
+
 @admin_bp.route('/projects/add', methods=["POST"])
 def add_project():
     """Add a new project."""
     tags = request.form.getlist("tags[]")
-    print(tags)
+    db = get_db()
+    project = {"tags": tags}
+    for field in ["title", "description"]:
+        value = request.form.get(field)
+        if value in [None, ""]:
+            print(f"{field} is missing")
+            return redirect(url_for('admin.index'))
+        else:
+            project[field] = value
+    for field in ["source", "demo"]:
+        value = request.form.get(field)
+        if value not in [None, ""]:
+            project[field] = value
+    if "image" not in request.files:
+        return redirect((url_for('admin.index')))
+    project["image"] = save_file(request.files["image"])
+    if project["image"] is None:
+        return redirect(url_for('admin.index'))
+    db.projects.insert_one(project)
     return redirect(url_for('admin.index'))
+
+
+@admin_bp.route('/images/<string:filename>')
+@protected
+def images(filename):
+    """Serve the project images."""
+    return send_from_directory(
+        os.path.join(current_app.instance_path, 'images'),
+        filename,
+    )
 
 
 @admin_bp.route('/')
@@ -62,5 +115,8 @@ def add_project():
 def index():
     """Render the home page for the admin dashboard."""
     db = get_db()
-    projects = db.projects.find()
+    projects = list(db.projects.find())
+    for project in projects:
+        project["id"] = str(project["_id"])
+        del project["_id"]
     return render_template('index.html', projects=projects)

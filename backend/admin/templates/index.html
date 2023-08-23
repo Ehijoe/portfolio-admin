@@ -1,3 +1,4 @@
+
 {% extends 'layout.html' %}
 
 {% block title %}Home{% endblock %}
@@ -5,14 +6,22 @@
 {% block body %}
 <script src={{ url_for('admin.static', filename="tags.js") }}></script>
 <h1>Projects</h1>
-<div>
+<div class="projects">
 	{% for project in projects %}
-	<div class="card" style="width: 18rem;">
-		<img src="..." class="card-img-top" alt="...">
+	<div class="card" style="width: 18rem; height: fit-content;">
+		<img src={{ url_for('admin.images', filename=project.image) }} class="card-img-top" alt="{{ project['title'] }}">
 		<div class="card-body">
-			<h5 class="card-title">Card title</h5>
-			<p class="card-text">Card content</p>
-			<a href="#" class="btn btn-primary">Go somewhere</a>
+			<h5 class="card-title">{{ project["title"] }}</h5>
+			<p class="card-text">{{ project["description"] }}</p>
+			{% for tag in project["tags"] %}
+			<span class="badge rounded-pill bg-primary">{{ tag }}</span>
+			{% endfor %}
+			<hr/>
+			<a href={{ project["source"] }} class="btn btn-primary">Source Code</a>
+			<a href={{ project["demo"] }} class="btn btn-primary">Demo</a>
+			<hr/>
+			<a href={{ url_for('admin.delete_project', id=project["id"]) }}
+			   class="btn btn-primary">Delete</a>
 		</div>
 	</div>
 	{% else %}
