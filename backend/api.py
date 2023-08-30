@@ -1,9 +1,12 @@
 """API views."""
 from flask import Blueprint, request, jsonify
+from flask_cors import CORS
 
 from .db import get_db
 
 api_bp = Blueprint('api', __name__, url_prefix='/api')
+
+CORS(api_bp)
 
 
 @api_bp.route('/projects')
